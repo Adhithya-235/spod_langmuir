@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Usage: 
-  langcirc_clp.py [--LaT=<turbulent_langmuir> --La=<laminar_langmuir> \
+  langcirc_rclp.py [--LaT=<turbulent_langmuir> --La=<laminar_langmuir> \
   --Nx=<Nx> --Ny=<Ny> --Nz=<Nz> --Tend=<stop_time>] 
   
 Options:
@@ -58,8 +58,6 @@ Langmuir   = float(args['--La'])                                                
 Lx, Ly, Lz = (4.0*np.pi, np.pi, 1.0)                                                          # Box Size
 Nx, Ny, Nz = (int(args['--Nx']), int(args['--Ny']), int(args['--Nz']))                        # No. of Gridpoints
 stop_time  = float(args['--Tend'])                                                            # Sim. stop time
-la1        = int(args['--La1'])                                                               # File naming sequence, first number
-la2        = int(args['--La2'])                                                               # File naming sequence, second number
 
 # LOGGER: RECORD INPUT PARAMETERS
 
@@ -77,8 +75,8 @@ xd, yd, zd = domain.grids(scales=3/2)
 
 # PROBLEM SETUP
 
-problem = de.IVP(domain, variables=['U', 'V', 'W', 'P', 'Uz', 'Vz', 'Wz'])
-problem.meta['Uz', 'Vz', 'W', 'P']['z']['dirichlet'] = True
+problem = de.IVP(domain, variables=['U', 'V', 'W', 'P', 'Uz', 'Vz', 'Wz', 'F'])
+problem.meta['Uz', 'Vz', 'W', 'P', 'F']['z']['dirichlet'] = True
 
 # NON-CONSTANT COEFFICIENTS (STOKES DRIFT VELOCITY)
 
