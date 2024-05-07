@@ -12,7 +12,7 @@
 
 cd $HOME/Research_Active_Projects/Craik_Leibovich_DNS/codebcfix/
 module load Anaconda3/2019.10
-mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_clp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=600.00 
+mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_clp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=50.00 
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs field_snapshots
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs energy_timeseries
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs timestep_tracker
