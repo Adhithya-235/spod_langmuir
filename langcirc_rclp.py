@@ -2,24 +2,23 @@
 # -*- coding: utf-8 -*-
 """
 Usage: 
-  langcirc_clp.py [--LaT=<turbulent_langmuir> --Re=<reynolds> --Del=<delta> \
+  langcirc_clp.py [--LaT=<turbulent_langmuir> --La=<laminar_langmuir> \
   --Nx=<Nx> --Ny=<Ny> --Nz=<Nz> --Tend=<stop_time> --La1=<langmuir1> --La2=<langmuir2>] 
   
 Options:
   --LaT=<turbulent_langmuir>        Turbulent Langmuir Number [default: 0.1]
-  --Re=<reynolds>                   Friction Reynolds Number [default: 1.0]
-  --Del=<delta>                     aCL to iCL length scaling factor [default: 0.1]
+  --La=<laminar_langmuir>           Friction Reynolds Number [default: 0.02]
   --Nx=<Nx>                         Number of downwind modes [default: 64]
   --Ny=<Ny>                         Number of crosswind modes [default: 64]
   --Nz=<Nz>                         Number of vertical modes [default: 64]
-  --Tend=<stop_time>                Simulation stop time [default: 40.0]  
-  --La1=<langmuir1>                 File naming pattern digit 1 [default: 1]
-  --La2=<langmuir2>                 File naming pattern digit 2 [default: -1]
+  --Tend=<stop_time>                Simulation stop time [default: 400.0]  
+  --La1=<langmuir1>                 File naming pattern digit 1 [default: 2]
+  --La2=<langmuir2>                 File naming pattern digit 2 [default: -2]
 """
 
 """
-Dedalus script for the direct numerical simulation of the anisotropically 
-scaled Craik-Leibovich equations as presented in Chini et al (2009).
+Dedalus script for the direct numerical simulation of the reduced Craik-Leibovich 
+equations as presented in Chini et al (2009).
 
 This script uses a Fourier basis in x and y (PBCs) and a Chebyshev basis in z 
 with nonhomogeneous Neumann BCs for the horizontal velocity 'u', homogeneous 
@@ -57,9 +56,8 @@ logger = logging.getLogger(__name__)
 
 args = docopt(__doc__)
 LangmuirT  = float(args['--LaT'])                                                             # Turbulent Langmuir Number
-Reynolds   = float(args['--Re'])                                                              # Wave Reynolds Number
-SeLa       = float(args['--Del'])                                                             # Scaling for domain length
-Lx, Ly, Lz = (16.0*np.pi, np.pi, 1.0)                                                         # Box Size
+Langmuir   = float(args['--La'])                                                              # Wave Reynolds Number
+Lx, Ly, Lz = (4.0*np.pi, np.pi, 1.0)                                                          # Box Size
 Nx, Ny, Nz = (int(args['--Nx']), int(args['--Ny']), int(args['--Nz']))                        # No. of Gridpoints
 stop_time  = float(args['--Tend'])                                                            # Sim. stop time
 la1        = int(args['--La1'])                                                               # File naming sequence, first number
@@ -68,14 +66,14 @@ la2        = int(args['--La2'])                                                 
 # LOGGER: RECORD INPUT PARAMETERS
 
 if MPI.COMM_WORLD.rank == 0:
-    logger.info("Running aCL simulation for LaT={:.3e}, Re={:.3e}".format(LangmuirT, Reynolds))
+    logger.info("Running rCL simulation for LaT={:.3e}, La={:.3e}".format(LangmuirT, Langmuir))
     
 # CREATE BASES AND DOMAIN
 
 x_basis = de.Fourier("x", Nx, interval=(0, Lx), dealias=3/2)
 y_basis = de.Fourier("y", Ny, interval=(0, Ly), dealias=3/2)
 z_basis = de.Chebyshev("z", Nz, interval=(-1.0*Lz, 0), dealias=3/2)
-domain  = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64, mesh=[12,8])
+domain  = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64, mesh=[4,4])
 x, y, z    = domain.grids(scales=1)
 xd, yd, zd = domain.grids(scales=3/2)
 
@@ -93,16 +91,15 @@ ncc.meta['y']['constant'] = True
 
 # EQUATION ENTRY SUBSTITUTIONS
 
-problem.parameters['Re']   = Reynolds
+problem.parameters['La']   = Langmuir
 problem.parameters['LaT']  = LangmuirT
-problem.parameters['SeLa'] = SeLa
-problem.parameters['Us']  = ncc
-problem.parameters['Lx']  = Lx
-problem.parameters['Ly']  = Ly
-problem.parameters['Lz']  = Lz
+problem.parameters['Us']   = ncc
+problem.parameters['Lx']   = Lx
+problem.parameters['Ly']   = Ly
+problem.parameters['Lz']   = Lz
 
-problem.substitutions['Lap(A, Az)']          = 'dx(dx(A)) + dy(dy(A)) + dz(Az)'
-problem.substitutions['Adv(A, B, C, D, Dz)'] = 'LaT*A*dx(D) + B*dy(D) + C*Dz'
+problem.substitutions['Lap(A, Az)']       = 'dy(dy(A)) + dz(Az)'
+problem.substitutions['Adv(A, B, C, Cz)'] = 'A*dy(C) + B*Cz'
 
 # ANALYSIS SUBSTITUTIONS
 
@@ -115,22 +112,25 @@ problem.substitutions['Vavg(A)'] = 'integ(integ(integ(A, "x"), "y"), "z")/(Lx*Ly
 
 #---- VORTICITY
 
-problem.substitutions['Omg'] = 'dy(W) - Vz'
+problem.substitutions['omega_x'] = 'dy(W) - Vz'
 
 #---- ENERGIES
 
-problem.substitutions['KE']   = 'Vavg((LaT*LaT*U*U + V*V + W*W)/2.0)'
+problem.substitutions['KE']   = 'Vavg(((LaT**(8.0/3.0))*(La**(-2.0/3.0))*U*U + V*V + W*W)/2.0)'
+problem.substitutions['UNKE'] = 'Vavg((U*U + V*V + W*W)/2.0)'
 problem.substitutions['CWKE'] = 'Vavg((V*V + W*W)/2.0)'
 
 # EVOLUTION EQUATIONS 
     
-problem.add_equation("dt(U) + (LaT**-1.0)*dx(P) - (LaT*(Re**-1.0))*Lap(U, Uz) = -Adv(U, V, W, U, Uz)")
-problem.add_equation("dt(V) + dy(P) - (LaT*(Re**-1.0))*Lap(V, Vz) = Us*(dy(U) - (LaT**-1.0)*dx(V)) - Adv(U, V, W, V, Vz)")
-problem.add_equation("dt(W) + dz(P) - (LaT*(Re**-1.0))*Lap(W, Wz) = Us*(Uz - (LaT**-1.0)*dx(W)) - Adv(U, V, W, W, Wz)")
+problem.add_equation("dt(U) + dx(P) - La*Lap(U, Uz) = -Adv(V, W, U, Uz)") 
+problem.add_equation("dt(V) + dy(P) - La*Lap(V, Vz) - Us*(dy(U) - dx(V)) = - Adv(V, W, V, Vz)")
+problem.add_equation("dt(W) + dz(P) - La*Lap(W, Wz) - Us*(Uz - dx(W)) = - Adv(V, W, W, Wz)")
 
 # CONSTRAINT EQUATIONS
     
-problem.add_equation("LaT*dx(U) + dy(V) + Wz = 0")
+problem.add_equation("dy(V) + Wz = 0")
+problem.add_equation("dz(F) = 0", condition="(ny!=0)")
+problem.add_equation("P - dz(F) = 0", condition="(ny==0)")
 
 # AUXILIARY EQUATIONS (DEFINE z-DERIVATIVES)
 
@@ -145,8 +145,9 @@ problem.add_bc("right(Uz) = 1")
 problem.add_bc("left(Vz) = 0")
 problem.add_bc("right(Vz) = 0")
 problem.add_bc("left(W) = 0")
-problem.add_bc("right(W) = 0", condition="(ny != 0) or (nx != 0)")
-problem.add_bc("right(P) = 0", condition="(ny == 0) and (nx == 0)")
+problem.add_bc("right(W) = 0", condition="(ny != 0)")
+problem.add_bc("left(F) = 0")
+problem.add_bc("right(F) = 0", condition="(ny == 0)")
 
 # BUILD SOLVER
 
@@ -163,23 +164,20 @@ if not pathlib.Path('restart.h5').exists():
     
     # RANDOM PERTURBATIONS, INITIALIZED GLOBALLY FOR SAME RESULTS IN PARALLEL
     
-    #gshape = domain.dist.grid_layout.global_shape(scales=1)
-    #slices = domain.dist.grid_layout.slices(scales=1)
-    #rand = np.random.RandomState(seed=23)
-    #noise = rand.standard_normal(gshape)[slices]
+    gshape = domain.dist.grid_layout.global_shape(scales=1)
+    slices = domain.dist.grid_layout.slices(scales=1)
+    rand = np.random.RandomState(seed=23)
+    noise = rand.standard_normal(gshape)[slices]
     
     # DAMP PERTURBATIONS AT WALLS
     
-    #zb, zt = z_basis.interval
-    #pert = 1e-3*noise*(zt-z)*(z-zb)
+    zb, zt = z_basis.interval
+    pert = 1e-3*noise*(zt-z)*(z-zb)
     
-    # INITIALIZE U, DIFFERENTIATE TO GET Uz
+    # INITIALIZE Uz, INTEGRATE TO GET U
     
-    U['g'] = 1.0*(1.0 + z + (1e-3)*np.cos(2.0*np.pi*z)*(np.sin(2.0*np.pi*x/Lx)*np.cos(4.0*np.pi*y/Ly) + np.sin(4.0*np.pi*x/Lx)*np.cos(2.0*np.pi*y/Ly)))
-    U.differentiate('z', out=Uz)
-
-    #Uz['g'] = 1.0 + pert
-    #Uz.antidifferentiate('z', ('left', 0), out=U)
+    Uz['g'] = 1.0 + pert
+    Uz.antidifferentiate('z', ('left', 0), out=U)
 
     # INTEGRATION PARAMETERS
     
@@ -192,29 +190,6 @@ else:
     # RESTART
 
     write, last_dt = solver.load_state('restart.h5', -1)
-    
-    # MODIFY FIELDS
-    
-    W   = solver.state['W']
-    #Uz  = solver.state['Uz']
-    
-    # RANDOM PERTURBATIONS, INITIALIZED GLOBALLY FOR SAME RESULTS IN PARALLEL
-    
-    gshape = domain.dist.grid_layout.global_shape(scales=3/2)
-    slices = domain.dist.grid_layout.slices(scales=3/2)
-    rand = np.random.RandomState(seed=23)
-    noise = rand.standard_normal(gshape)[slices]
-    
-    # DAMP PERTURBATIONS AT WALLS
-    
-    zb, zt = z_basis.interval
-    pert = 1e-3*noise*(zt-zd)*(zd-zb)
-    
-    # INITIALIZE U, DIFFERENTIATE TO GET Uz
-
-    #Uz['g'] = Uz['g'] + pert
-    #Uz.antidifferentiate('z', ('left', 0), out=U)
-    W['g'] = W['g'] + pert
     
     # INTEGRATION PARAMETERS
 
@@ -229,7 +204,7 @@ snapshot.add_task("U", name = 'U')
 snapshot.add_task("V", name = 'V')
 snapshot.add_task("W", name = 'W')
 snapshot.add_task("P", name = 'P')
-snapshot.add_task("Omg", name = 'O')
+snapshot.add_task("omega_x", name = 'O')
 
 globalp = solver.evaluator.add_file_handler("la{:d}e{:d}a".format(la1, la2), sim_dt=0.02, max_writes=10000000, mode=fh_mode)
 globalp.add_task("KE", name = 'KE')
@@ -240,18 +215,19 @@ globalt.add_task("CWKE", name = 'CWKE')
 
 photo = solver.evaluator.add_file_handler("la{:d}e{:d}p".format(la1, la2), sim_dt=0.4, max_writes=100, mode=fh_mode)
 photo.add_system(solver.state)
-#photo.add_task("Uz", name = 'Uz')
+photo.add_task("Uz", name = 'Uz')
 
 # CFL 
 
-CFL = flow_tools.CFL(solver, initial_dt=dt, cadence=10, safety=0.3, max_change=1.5, min_change=0.5, max_dt=2e-3, threshold=0.1)
-CFL.add_velocities(('LaT*U', 'V', 'W'))
+CFL = flow_tools.CFL(solver, initial_dt=dt, cadence=10, safety=0.3, max_change=1.5, min_change=0.5, max_dt=0.01, threshold=0.1)
+CFL.add_velocity('V', 1)
+CFL.add_velocity('W', 2)
 
 # FLOW TOOLS
 
 flow = flow_tools.GlobalFlowProperty(solver, cadence = 100)
-flow.add_property("LaT*dx(U) + dy(V) + Wz", name="divUP")
-flow.add_property("(LaT*LaT*U*U + V*V + W*W)/2.0", name="TKE")
+flow.add_property("dy(V) + Wz", name="divUP")
+flow.add_property("KE", name="TKE")
 
 # MAIN LOOP
 
@@ -263,7 +239,7 @@ try:
         dt = CFL.compute_dt()
         solver.step(dt)
         if (solver.iteration-1) % 100 == 0:
-            logger.info('Iteration: %i, Time: %e, dt: %e, Div(U,V,W): %e, ToKE: %e' %(solver.iteration, solver.sim_time, dt, flow.max('divUP'), flow.max('TKE')))     
+            logger.info('Iteration: %i, Time: %e, dt: %e, Div(V,W): %e, ToKE: %e' %(solver.iteration, solver.sim_time, dt, flow.max('divUP'), flow.max('TKE')))     
 except:
     logger.error('Exception raised, triggering end of main loop.')
     raise
