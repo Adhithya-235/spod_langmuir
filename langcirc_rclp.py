@@ -3,7 +3,7 @@
 """
 Usage: 
   langcirc_clp.py [--LaT=<turbulent_langmuir> --La=<laminar_langmuir> \
-  --Nx=<Nx> --Ny=<Ny> --Nz=<Nz> --Tend=<stop_time> --La1=<langmuir1> --La2=<langmuir2>] 
+  --Nx=<Nx> --Ny=<Ny> --Nz=<Nz> --Tend=<stop_time>] 
   
 Options:
   --LaT=<turbulent_langmuir>        Turbulent Langmuir Number [default: 0.1]
@@ -12,8 +12,6 @@ Options:
   --Ny=<Ny>                         Number of crosswind modes [default: 64]
   --Nz=<Nz>                         Number of vertical modes [default: 64]
   --Tend=<stop_time>                Simulation stop time [default: 400.0]  
-  --La1=<langmuir1>                 File naming pattern digit 1 [default: 2]
-  --La2=<langmuir2>                 File naming pattern digit 2 [default: -2]
 """
 
 """
@@ -199,21 +197,21 @@ else:
     
 # ANALYSIS
 
-snapshot = solver.evaluator.add_file_handler("la{:d}e{:d}".format(la1, la2), sim_dt=0.2, max_writes=400, mode=fh_mode)
+snapshot = solver.evaluator.add_file_handler("field_snapshots", sim_dt=0.2, max_writes=400, mode=fh_mode)
 snapshot.add_task("U", name = 'U')
 snapshot.add_task("V", name = 'V')
 snapshot.add_task("W", name = 'W')
 snapshot.add_task("P", name = 'P')
 snapshot.add_task("omega_x", name = 'O')
 
-globalp = solver.evaluator.add_file_handler("la{:d}e{:d}a".format(la1, la2), sim_dt=0.02, max_writes=10000000, mode=fh_mode)
+globalp = solver.evaluator.add_file_handler("energy_timeseries", sim_dt=0.02, max_writes=10000000, mode=fh_mode)
 globalp.add_task("KE", name = 'KE')
 globalp.add_task("CWKE", name = 'CWKE')
 
-globalt = solver.evaluator.add_file_handler("la{:d}e{:d}t".format(la1, la2), iter=1, max_writes=10000000, mode=fh_mode)
+globalt = solver.evaluator.add_file_handler("timestep_tracker", iter=1, max_writes=10000000, mode=fh_mode)
 globalt.add_task("CWKE", name = 'CWKE')
 
-photo = solver.evaluator.add_file_handler("la{:d}e{:d}p".format(la1, la2), sim_dt=0.4, max_writes=100, mode=fh_mode)
+photo = solver.evaluator.add_file_handler("checkpointing_data", sim_dt=0.4, max_writes=100, mode=fh_mode)
 photo.add_system(solver.state)
 photo.add_task("Uz", name = 'Uz')
 
