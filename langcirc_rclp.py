@@ -195,7 +195,7 @@ else:
     
 # ANALYSIS
 
-snapshot = solver.evaluator.add_file_handler("field_snapshots", sim_dt=0.2, max_writes=400, mode=fh_mode)
+snapshot = solver.evaluator.add_file_handler("field_snapshots", sim_dt=0.5, max_writes=100, mode=fh_mode)
 snapshot.add_task("U", name = 'U')
 snapshot.add_task("V", name = 'V')
 snapshot.add_task("W", name = 'W')

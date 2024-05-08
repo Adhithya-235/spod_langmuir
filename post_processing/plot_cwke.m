@@ -10,7 +10,7 @@
 
 %% READ DATA
 
-[t, ~, ~, cwke] = get_time_data(folder_name, maxs);
+[t, ~, ~, cwke] = get_timeseries_data(folder_name, maxs);
 
 %% PLOT TIMESERIES
 

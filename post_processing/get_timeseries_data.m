@@ -1,4 +1,4 @@
-function [t, nf, ke, cwke] = get_time_data(folder_name, maxs)
+function [t, nf, ke, cwke] = get_timeseries_data(folder_name, maxs)
 
 % This function reads HDF5 data produced by dedalus and extracts temporal
 % grid as well as timeseries of the total and cross-wind kinetic energies. 

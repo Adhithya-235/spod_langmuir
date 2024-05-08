@@ -37,6 +37,7 @@ cp langcirc_rclp.* "$folder_name/"
 # Create analysis plots after navigating to post processing code folder
 cd $HOME/Research_Active_Projects/spod_langmuir/post_processing/
 matlab -batch "clear; close all; clc; folder_name='$folder_name'; maxs=1; plot_cwke"
+matlab -batch "clear; close all; clc; folder_name='$folder_name'; svec=[1]; wrap=0; plot_fields"
 
 # Display a message indicating completion
 echo "Simulation complete. Post processing complete. Results saved in $folder_name."
