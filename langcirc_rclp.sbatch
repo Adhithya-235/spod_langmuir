@@ -20,8 +20,8 @@ folder_name=$(date +'%Y-%m-%d_%H-%M-%S')
 mkdir "$folder_name"
 
 # Make plotting subfolders
-mkdir "$folder_name/plots/timeseries"
-mkdir "$folder_name/plots/frames"
+mkdir -p "$folder_name/plots/timeseries"
+mkdir -p "$folder_name/plots/frames"
 
 # Run simulation, merge processes
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_rclp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=50.00 
