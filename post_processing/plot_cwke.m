@@ -28,5 +28,5 @@ set(gca, 'linewidth', 5)
 
 %% SAVE VARIABLES AND PLOT
 
-saveas(f, sprintf('%s/plots/timeseries/cwke_timeseries.png', folder_name)) 
+saveas(f, sprintf('../%s/plots/timeseries/cwke_timeseries.png', folder_name)) 
 

@@ -10,7 +10,7 @@ function [t, nf, ke, cwke] = get_time_data(folder_name, maxs)
 fname = string.empty;
     
 for s = 1:maxs
-    fname(s) = sprintf('%s/energy_timeseries/energy_timeseries_s%d.h5', folder_name, s);
+    fname(s) = sprintf('../%s/energy_timeseries/energy_timeseries_s%d.h5', folder_name, s);
 end
 
 %% READ DATA
