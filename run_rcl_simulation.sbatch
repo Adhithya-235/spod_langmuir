@@ -32,11 +32,12 @@ mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs check
 
 # Move generated data and logging files to the created folder
 mv field_snapshots energy_timeseries timestep_tracker checkpointing_data logger.* "$folder_name/"
-cp langcirc_rclp.* "$folder_name/"
+cp langcirc_rclp.py run_rcl_simulation.sbatch "$folder_name/"
 
 # Create analysis plots after navigating to post processing code folder
 cd $HOME/Research_Active_Projects/spod_langmuir/post_processing/
 matlab -batch "clear; close all; clc; folder_name='$folder_name'; maxs=1; plot_cwke"
+matlab -batch "clear; close all; clc; folder_name='$folder_name'; svec=[1]; wrap=0; plot_fields"
 
 # Display a message indicating completion
 echo "Simulation complete. Post processing complete. Results saved in $folder_name."
