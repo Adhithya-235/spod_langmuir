@@ -24,8 +24,9 @@ mkdir -p "$folder_name/plots/timeseries"
 mkdir -p "$folder_name/plots/frames"
 
 # Run simulation, merge processes
-mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_rclp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=50.00 
+mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_rclp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=400.00 
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs field_snapshots
+mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs field_probes
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs energy_timeseries
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs timestep_tracker
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 -m dedalus merge_procs checkpointing_data
@@ -36,8 +37,10 @@ cp langcirc_rclp.py run_rcl_simulation.sbatch "$folder_name/"
 
 # Create analysis plots after navigating to post processing code folder
 cd $HOME/Research_Active_Projects/spod_langmuir/post_processing/
+echo "Plotting CWKE timeseries."
 matlab -batch "clear; close all; clc; folder_name='$folder_name'; maxs=1; plot_cwke"
-matlab -batch "clear; close all; clc; folder_name='$folder_name'; svec=[1]; wrap=0; plot_fields"
+echo "Plotting probe frames."
+matlab -batch "clear; close all; clc; folder_name='$folder_name'; probe_toggle = 1; svec=[1]; wrap=0; plot_fields"
 
 # Display a message indicating completion
 echo "Simulation complete. Post processing complete. Results saved in $folder_name."

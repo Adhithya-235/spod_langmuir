@@ -195,12 +195,18 @@ else:
     
 # ANALYSIS
 
-snapshot = solver.evaluator.add_file_handler("field_snapshots", sim_dt=0.5, max_writes=100, mode=fh_mode)
+snapshot = solver.evaluator.add_file_handler("field_snapshots", sim_dt=0.1, max_writes=100, mode=fh_mode)
 snapshot.add_task("U", name = 'U')
 snapshot.add_task("V", name = 'V')
 snapshot.add_task("W", name = 'W')
 snapshot.add_task("P", name = 'P')
 snapshot.add_task("omega_x", name = 'O')
+
+probe = solver.evaluator.add_file_handler("field_probes", sim_dt=20, max_writes=100, mode=fh_mode)
+probe.add_task("U", name = 'U')
+probe.add_task("V", name = 'V')
+probe.add_task("W", name = 'W')
+probe.add_task("P", name = 'P')
 
 globalp = solver.evaluator.add_file_handler("energy_timeseries", sim_dt=0.02, max_writes=10000000, mode=fh_mode)
 globalp.add_task("KE", name = 'KE')

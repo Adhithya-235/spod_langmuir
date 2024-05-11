@@ -10,8 +10,8 @@
 
 %% READ DATA
 
-[x, y, z, X, Y, Z] = get_space_data(folder_name, wrap);
-[t, U, V, W, P, nf] = get_field_data(folder_name, svec, wrap);
+[x, y, z, X, Y, Z] = get_space_data(folder_name, probe_toggle, wrap);
+[t, U, V, W, P, nf] = get_field_data(folder_name, probe_toggle, svec, wrap);
 
 
 %% DEFINE SLICES
