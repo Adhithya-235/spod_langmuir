@@ -1,17 +1,12 @@
-function [x, y, z, X, Y, Z] = get_space_data(folder_name, probe_toggle, wrap)
+function [x, y, z, X, Y, Z] = get_space_data(folder_name, file_name, wrap)
 
 % This function reads HDF5 data produced by dedalus and extracts the spatial grid. 
-% Specify date-based folder name. Also, wrap=1 means the last gridpoint in 
-% periodic grids is kept. Useful for integration purposes. Finally, if probe_toggle = 1, 
-% probe data will be collected instead of more finely sampled field snapshots.
-
+% Specify date-based folder name and data file name. Also, wrap=1 means the last 
+% gridpoint in periodic grids is kept. Useful for integration purposes.
 
 %% FILENAME 
-if probe_toggle == 1
-    fname = sprintf('../%s/field_probes/field_probes_s1.h5', folder_name);
-else if probe_toggle == 0    
-    fname = sprintf('../%s/field_snapshots/field_snapshots_s1.h5', folder_name);
-end
+
+fname = sprintf('../%s/%s/%s_s1.h5', folder_name, file_name, file_name);
 
 %% READ x, y AND z DATA
 

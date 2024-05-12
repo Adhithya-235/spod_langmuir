@@ -1,25 +1,19 @@
-function [t, U, V, W, P, nf] = get_field_data(folder_name, probe_toggle, svec, wrap)
+function [t, U, V, W, P, nf] = get_field_data(folder_name, file_name, svec, wrap)
 
 % This function reads HDF5 data produced by dedalus and extracts temporal
 % grid as well as 4-dimensional (x, y, z, t) primitive variable fields. 
-% Specify date-based folder name as well as the desired data series numbers to be plotted. 
-% Also, wrap=1 means the last gridpoint in periodic grids is kept. Useful for integration purposes.
-% Finally, if probe_toggle = 1, probe data will be collected instead of more finely sampled field
-% snapshots.
+% Specify date-based folder name, data file name as well as the desired 
+% data series numbers to be plotted. Also, wrap=1 means the last gridpoint 
+% in periodic grids is kept. Useful for integration purposes.
+
 
 %% FILENAME
 
 fname = string.empty;
 maxs = length(svec);
-if probe_toggle == 1
-    for s = 1:maxs
-        fname(s) = sprintf('../%s/field_probes/field_probes_s%d.h5', folder_name, svec(s));
-    end
-else if probe_toggle == 0
-    for s = 1:maxs
-        fname(s) = sprintf('../%s/field_snapshots/field_snapshots_s%d.h5', folder_name, svec(s));
-    end
-end    
+for s = 1:maxs
+    fname(s) = sprintf('../%s/%s/%s_s%d.h5', folder_name, file_name, file_name, svec(s));
+end
 
 %% GET DATA FROM FILE
 
