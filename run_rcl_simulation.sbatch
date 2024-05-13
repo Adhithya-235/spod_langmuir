@@ -22,6 +22,7 @@ mkdir "$folder_name"
 # Make plotting subfolders
 mkdir -p "$folder_name/plots/timeseries"
 mkdir -p "$folder_name/plots/frames"
+mkdir -p "$folder_name/plots/spod"
 
 # Run simulation, merge processes
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_rclp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=400.00 
