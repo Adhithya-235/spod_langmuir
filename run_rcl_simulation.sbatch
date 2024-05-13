@@ -13,7 +13,7 @@
 # Navigate to code directory, load module 
 cd $HOME/Research_Active_Projects/spod_langmuir/
 module load Anaconda3/2019.10
-module load MATLAB/R2021a
+module load MATLAB/R2022b_Update_3
 
 # Create a folder with the current date and time
 folder_name=$(date +'%Y-%m-%d_%H-%M-%S')
@@ -38,9 +38,14 @@ cp langcirc_rclp.py run_rcl_simulation.sbatch "$folder_name/"
 # Create analysis plots after navigating to post processing code folder
 cd $HOME/Research_Active_Projects/spod_langmuir/post_processing/
 echo "Plotting CWKE timeseries."
-matlab -batch "clear; close all; clc; folder_name='$folder_name'; maxs=1; plot_cwke"
+matlab -batch "clear; close all; clc; addpath('../utility_belt'); folder_name='$folder_name'; maxs=1; plot_cwke"
 echo "Plotting probe frames."
-matlab -batch "clear; close all; clc; folder_name='$folder_name'; file_name='field_probes'; svec=[1]; wrap=0; plot_fields"
+matlab -batch "clear; close all; clc; addpath('../utility_belt'); folder_name='$folder_name'; file_name='field_probes'; svec=[1]; wrap=0; plot_fields"
+
+# Perform SPOD analysis and plot a trace of the dominant mode
+cd $HOME/Research_Active_Projects/spod_langmuir/spod/
+echo "Performing preliminary SPOD analysis. SPOD spectrum and traces of the dominant mode will be plotted."
+matlab -batch "clear; close all; clc; addpath('../utility_belt'); La=0.02; folder_name='$folder_name'; file_name='field_snapshots'; svec=[20:40]; wrap=1; preliminary_spod"
 
 # Display a message indicating completion
 echo "Simulation complete. Post processing complete. Results saved in $folder_name."

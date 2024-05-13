@@ -3,34 +3,28 @@
 %   vector w, and a weight-matrix based on the trapezoidal rule.
 %========================================================================%
 
-clear
-close all
-clc
+%% READ DATA
 
-%% WRITE La
-
-La  = 0.001;
-Lat = 0;
-
-%% LOAD FILES
-
-cl   = load('import/la1e-3_new/wrclv.mat', 'W', 'x', 'y', 'z', 't'); 
-data = permute(cl.W, [4,1,2,3]);
-dt = mean(diff(cl.t));
+[x, y, z, ~, ~, ~]  = get_space_data(folder_name, file_name, wrap);
+[t, ~, ~, W, ~, nf] = get_field_data(folder_name, file_name, svec, wrap);
+data = permute(W, [4,1,2,3]);
+dt = mean(diff(t));
 
 %% GET WEIGHT MATRIX AND DEFINE WINDOW LENGTH
 
-weight_xyz = calc_3Dtrapzweights(cl.x, cl.y, cl.z);
-Nf         = 50;
+weight_xyz = calc_3Dtrapzweights(x, y, z);
+Nf         = 250;
 
 %% PERFORM SPOD 
 
 [L,P,f,Lc] = spod(data,Nf,weight_xyz,[],dt); 
 ang_f      = 2*pi*f;
+[maxrow, maxcol] = find(L == max(max(L)));
 
 %% PLOT MODE ENERGY
 
-figure(1)
+f1 = figure;
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
 hold on
 patch([ang_f(2:end) fliplr(ang_f(2:end))],...
     [Lc(2:end,1,1)' fliplr(Lc(2:end,1,2)')], 'g')
@@ -40,36 +34,40 @@ title(sprintf('SPOD SPECTRUM, La = %1.3f', La))
 xlabel('$\omega$', 'interpreter', 'latex')
 ylabel('$E_{mode}$', 'interpreter', 'latex')
 xlim([1e-1 1e1])
-ylim([1e-6 1e1])
+ylim([1e-15 1e1])
 box on
 set(gca, 'boxstyle', 'full', 'linewidth', 3, 'fontsize', 20,...
         'yscale', 'log', 'xscale', 'log')
+saveas(f1, sprintf('../%s/plots/spod/spod_eigenvalues.png', folder_name))
 
 %% PLOT SELECT MODES
 
-[Y, X, Z] = meshgrid(cl.y, cl.x, cl.z);
-mode = real(squeeze(P(2,:,:,:,1)));
+[Y, X, Z] = meshgrid(y, x, z);
+mode = real(squeeze(P(maxrow,:,:,:,maxcol)));
 Cmax = max(max(max(mode)));
 Cmin = min(min(min(mode)));
-figure(4);
+f2 = figure;
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
-plot_slices(X,Y,Z,mode,cl.x(end),cl.y(end),cl.z(33),[Cmin,Cmax],'spod mode',[]);
+help_plot_fields(X,Y,Z,mode,x(end),y(end),z(33),[Cmin,Cmax],'dominant spod mode',[]);
+saveas(f2, sprintf('../%s/plots/spod/spod_dom_mode.png', folder_name))
 
 %% CREATE SOLUTION FIELD
 
-time     = 0:dt:100;
-dom_mode = squeeze(P(4,:,:,:,1));
+time     = t(1):dt:t(end);
+time     = time - time(1);
+dom_mode = squeeze(P(maxrow,:,:,:,maxcol));
 dom_evol = zeros([size(dom_mode), length(time)]);
 for ti = 1:length(time)
-    dom_evol(:,:,:,ti) = dom_mode*exp(1i*ang_f(4)*time(ti));
+    dom_evol(:,:,:,ti) = dom_mode*exp(1i*ang_f(maxrow)*time(ti));
 end
 
 %% SPACE-TIME PLOT
 
-probe_w   = squeeze(cl.W(1,:,33,:));
+probe_w   = squeeze(W(1,:,33,:));
 probe_spw = squeeze(dom_evol(1,:,33,:));
-figure(4)
-[xg, tg] = meshgrid(cl.y,cl.t);
+f3 = figure;
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
+[xg, tg] = meshgrid(y,t);
 subplot(121)
 pcolor(xg,tg,probe_w')
 colormap parula
@@ -77,13 +75,13 @@ c = colorbar;
 shading interp
 xlabel('$y$', 'interpreter', 'latex')
 ylabel('$t$', 'interpreter', 'latex')
-title(sprintf('La = %0.3f, La_t = %0.3f', La, Lat))
+title(sprintf('La = %0.3f', La))
 c.Label.Interpreter = 'latex';
-c.FontSize = 30;
+c.FontSize = 20;
 axis tight
 axis square
 box on
-set(gca, 'fontsize', 30, 'linewidth', 3, 'boxstyle', 'full')
+set(gca, 'fontsize', 20, 'linewidth', 3, 'boxstyle', 'full')
 
 subplot(122)
 pcolor(xg,tg,real(probe_spw)')
@@ -91,11 +89,13 @@ colormap parula
 c = colorbar;
 shading interp
 xlabel('$y$', 'interpreter', 'latex')
-title(sprintf('La = %0.3f, La_t = %0.3f', La, Lat))
+title(sprintf('La = %0.3f', La))
 c.Label.Interpreter = 'latex';
 c.Label.String = '$w_{spod}$';
-c.FontSize = 30;
+c.FontSize = 20;
 axis tight
 axis square
 box on
-set(gca, 'fontsize', 30, 'linewidth', 3, 'boxstyle', 'full')
+set(gca, 'fontsize', 20, 'linewidth', 3, 'boxstyle', 'full')
+drawnow
+saveas(f3, sprintf('../%s/plots/spod/spod_dom_trace.png', folder_name))
