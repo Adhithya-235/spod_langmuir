@@ -30,10 +30,11 @@ patch([ang_f(2:end) fliplr(ang_f(2:end))],...
     [Lc(2:end,1,1)' fliplr(Lc(2:end,1,2)')], 'g')
 plot(ang_f, L, 'b-','LineWidth', 3)
 xline(2*pi/25, 'k--', 'LineWidth', 3)
+xline(2*pi, 'k--', 'LineWidth', 3)
 title(sprintf('SPOD SPECTRUM, La = %1.3f', La))
 xlabel('$\omega$', 'interpreter', 'latex')
 ylabel('$E_{mode}$', 'interpreter', 'latex')
-xlim([1e-1 1e1])
+xlim([1e-1 1e2])
 ylim([1e-15 1e1])
 box on
 set(gca, 'boxstyle', 'full', 'linewidth', 3, 'fontsize', 20,...

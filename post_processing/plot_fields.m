@@ -11,7 +11,7 @@
 %% READ DATA
 
 [x, y, z, X, Y, Z] = get_space_data(folder_name, file_name, wrap);
-[t, U, V, W, P, nf] = get_field_data(folder_name, file_name, svec, wrap);
+[t, U, V, W, Psi, nf] = get_field_data(folder_name, file_name, svec, wrap);
 
 
 %% DEFINE SLICES
@@ -50,11 +50,11 @@ for i = 1:nf
     help_plot_fields(X,Y,Z,W(:,:,:,i),xs,ys,zs,clim,'W',t(i))
     title(sprintf('Time = %3.3f', t(i)))
 
-    %% PLOT P
+    %% PLOT Psi
 
     subplot(224)
-    clim = [min(min(min(min(P)))), max(max(max(max(P))))];
-    help_plot_fields(X,Y,Z,P(:,:,:,i),xs,ys,zs,clim,'P',t(i))
+    clim = [min(min(min(min(Psi)))), max(max(max(max(Psi))))];
+    help_plot_fields(X,Y,Z,Psi(:,:,:,i),xs,ys,zs,clim,'$\Psi$',t(i))
     title(sprintf('Time = %3.3f', t(i)))
 
     %% DRAW FRAME

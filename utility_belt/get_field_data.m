@@ -1,4 +1,4 @@
-function [t, U, V, W, P, nf] = get_field_data(folder_name, file_name, svec, wrap)
+function [t, U, V, W, Psi, nf] = get_field_data(folder_name, file_name, svec, wrap)
 
 % This function reads HDF5 data produced by dedalus and extracts temporal
 % grid as well as 4-dimensional (x, y, z, t) primitive variable fields. 
@@ -17,39 +17,39 @@ end
 
 %% GET DATA FROM FILE
 
-U = [];
-V = [];
-W = [];
-P = [];
-t = [];
+U   = [];
+V   = [];
+W   = [];
+Psi = [];
+t   = [];
 
 for s = 1:maxs
-   t = [t; h5read(fname(s),'/scales/sim_time')];
-   U = cat(4, U, h5read(fname(s), '/tasks/U'));
-   V = cat(4, V, h5read(fname(s), '/tasks/V'));
-   W = cat(4, W, h5read(fname(s), '/tasks/W'));
-   P = cat(4, P, h5read(fname(s), '/tasks/P'));
+   t   = [t; h5read(fname(s),'/scales/sim_time')];
+   U   = cat(4, U, h5read(fname(s), '/tasks/U'));
+   V   = cat(4, V, h5read(fname(s), '/tasks/V'));
+   W   = cat(4, W, h5read(fname(s), '/tasks/W'));
+   Psi = cat(4, Psi, h5read(fname(s), '/tasks/Psi'));
  end
 
 
 %% PERMUTATION
 
-U = permute(U,[3,2,1,4]);
-V = permute(V,[3,2,1,4]);
-W = permute(W,[3,2,1,4]);
-P = permute(P,[3,2,1,4]);
+U   = permute(U,[3,2,1,4]);
+V   = permute(V,[3,2,1,4]);
+W   = permute(W,[3,2,1,4]);
+Psi = permute(Psi,[3,2,1,4]);
 
 %% WRAP
 
 if wrap == 1
-    U = cat(1, U, U(1, :, :, :));
-    U = cat(2, U, U(:, 1, :, :));
-    V = cat(1, V, V(1, :, :, :));
-    V = cat(2, V, V(:, 1, :, :));
-    W = cat(1, W, W(1, :, :, :));
-    W = cat(2, W, W(:, 1, :, :));
-    P = cat(1, P, P(1, :, :, :));
-    P = cat(2, P, P(:, 1, :, :));
+    U   = cat(1, U, U(1, :, :, :));
+    U   = cat(2, U, U(:, 1, :, :));
+    V   = cat(1, V, V(1, :, :, :));
+    V   = cat(2, V, V(:, 1, :, :));
+    W   = cat(1, W, W(1, :, :, :));
+    W   = cat(2, W, W(:, 1, :, :));
+    Psi = cat(1, Psi, Psi(1, :, :, :));
+    Psi = cat(2, Psi, Psi(:, 1, :, :));
 end
 
 %% DETERMINE TIMESERIES LENGTH

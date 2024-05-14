@@ -75,8 +75,8 @@ xd, yd, zd = domain.grids(scales=3/2)
 
 # PROBLEM SETUP
 
-problem = de.IVP(domain, variables=['U', 'V', 'W', 'P', 'Uz', 'Vz', 'Wz', 'F'])
-problem.meta['Uz', 'Vz', 'W', 'P', 'F']['z']['dirichlet'] = True
+problem = de.IVP(domain, variables=['U', 'V', 'W', 'P', 'Psi', 'Uz', 'Vz', 'Wz', 'F', 'Psiz'])
+problem.meta['Uz', 'Vz', 'W', 'P', 'F', 'Psi']['z']['dirichlet'] = True
 
 # NON-CONSTANT COEFFICIENTS (STOKES DRIFT VELOCITY)
 
@@ -127,12 +127,14 @@ problem.add_equation("dt(W) + dz(P) - La*Lap(W, Wz) - Us*(Uz - dx(W)) = - Adv(V,
 problem.add_equation("dy(V) + Wz = 0")
 problem.add_equation("dz(F) = 0", condition="(ny!=0)")
 problem.add_equation("P - dz(F) = 0", condition="(ny==0)")
+problem.add_equation("omega_x + Lap(Psi, Psiz) = 0")
 
 # AUXILIARY EQUATIONS (DEFINE z-DERIVATIVES)
 
 problem.add_equation("Uz - dz(U) = 0")
 problem.add_equation("Vz - dz(V) = 0")
 problem.add_equation("Wz - dz(W) = 0")
+problem.add_equation("Psiz - dz(Psi) = 0")
 
 # BOUNDARY CONDITIONS
 
@@ -140,6 +142,8 @@ problem.add_bc("left(Uz) = 1")
 problem.add_bc("right(Uz) = 1")
 problem.add_bc("left(Vz) = 0")
 problem.add_bc("right(Vz) = 0")
+problem.add_bc("left(Psi) = 0")
+problem.add_bc("right(Psi) = 0")
 problem.add_bc("left(W) = 0")
 problem.add_bc("right(W) = 0", condition="(ny != 0)")
 problem.add_bc("left(F) = 0")
@@ -201,12 +205,14 @@ snapshot.add_task("V", name = 'V')
 snapshot.add_task("W", name = 'W')
 snapshot.add_task("P", name = 'P')
 snapshot.add_task("omega_x", name = 'O')
+snapshot.add_task("Psi", name = 'Psi')
 
 probe = solver.evaluator.add_file_handler("field_probes", sim_dt=20, max_writes=100, mode=fh_mode)
 probe.add_task("U", name = 'U')
 probe.add_task("V", name = 'V')
 probe.add_task("W", name = 'W')
 probe.add_task("P", name = 'P')
+probe.add_task("Psi", name = 'Psi')
 
 globalp = solver.evaluator.add_file_handler("energy_timeseries", sim_dt=0.02, max_writes=10000000, mode=fh_mode)
 globalp.add_task("KE", name = 'KE')
