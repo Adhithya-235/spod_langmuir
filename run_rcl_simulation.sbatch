@@ -23,6 +23,7 @@ mkdir "$folder_name"
 mkdir -p "$folder_name/plots/timeseries"
 mkdir -p "$folder_name/plots/frames"
 mkdir -p "$folder_name/plots/spod"
+mkdir -p "$folder_name/plots/movies"
 
 # Run simulation, merge processes
 mpiexec -n 16 $HOME/.conda/envs/dedalus/bin/python3 langcirc_rclp.py --LaT=0.1 --La=0.02 --Nx=64 --Ny=64 --Nz=64 --Tend=400.00 
@@ -42,6 +43,8 @@ echo "Plotting CWKE timeseries."
 matlab -batch "clear; close all; clc; addpath('../utility_belt'); folder_name='$folder_name'; maxs=1; plot_cwke"
 echo "Plotting probe frames."
 matlab -batch "clear; close all; clc; addpath('../utility_belt'); folder_name='$folder_name'; file_name='field_probes'; svec=[1]; wrap=0; plot_fields"
+echo "Animating streamfunction slices."
+matlab -batch "clear; close all; clc; addpath('../utility_belt'); folder_name='$folder_name'; file_name='field_snapshots'; svec=[20:40]; wrap=0; animate_fields"
 
 # Perform SPOD analysis and plot a trace of the dominant mode
 cd $HOME/Research_Active_Projects/spod_langmuir/spod/

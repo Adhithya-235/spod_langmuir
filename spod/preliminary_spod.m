@@ -6,8 +6,8 @@
 %% READ DATA
 
 [x, y, z, ~, ~, ~]  = get_space_data(folder_name, file_name, wrap);
-[t, ~, ~, W, ~, nf] = get_field_data(folder_name, file_name, svec, wrap);
-data = permute(W, [4,1,2,3]);
+[t, ~, ~, ~, Psi, nf] = get_field_data(folder_name, file_name, svec, wrap);
+data = permute(Psi, [4,1,2,3]);
 dt = mean(diff(t));
 
 %% GET WEIGHT MATRIX AND DEFINE WINDOW LENGTH
@@ -17,9 +17,9 @@ Nf         = 250;
 
 %% PERFORM SPOD 
 
-[L,P,f,Lc] = spod(data,Nf,weight_xyz,[],dt); 
-ang_f      = 2*pi*f;
-[maxrow, maxcol] = find(L == max(max(L)));
+[L,P,f,Lc]       = spod(data,Nf,weight_xyz,[],dt); 
+ang_f            = 2*pi*f;
+[maxrow, maxcol] = find(L == max(max(L)))
 
 %% PLOT MODE ENERGY
 
@@ -64,7 +64,7 @@ end
 
 %% SPACE-TIME PLOT
 
-probe_w   = squeeze(W(1,:,33,:));
+probe_w   = squeeze(Psi(1,:,33,:));
 probe_spw = squeeze(dom_evol(1,:,33,:));
 f3 = figure;
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96])
@@ -92,7 +92,7 @@ shading interp
 xlabel('$y$', 'interpreter', 'latex')
 title(sprintf('La = %0.3f', La))
 c.Label.Interpreter = 'latex';
-c.Label.String = '$w_{spod}$';
+c.Label.String = '$\Psi_{spod}$';
 c.FontSize = 20;
 axis tight
 axis square
